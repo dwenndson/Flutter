@@ -3,6 +3,17 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
+void enviaPost(String titulo, String corpo) async {
+  final response = await http.post('https://jsonplaceholder.typicode.com/posts',
+      body: {'title': titulo, 'body': corpo, 'userId': '7'});
+
+  if (response.statusCode == 201) {
+    print(response.body);
+  } else {
+    throw Exception('Falhou na requisição');
+  }
+}
+
 class Post {
   final int userId;
   final int id;
@@ -72,6 +83,10 @@ class TestePage extends StatefulWidget {
 
 class _TestePage extends State<TestePage> {
   Future<List<Post>> postagens;
+  String titulo;
+  String corpo;
+
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -86,17 +101,50 @@ class _TestePage extends State<TestePage> {
       appBar: AppBar(
         title: Text('Página de Teste'),
       ),
-      body: Center(
-        child: FutureBuilder<List<Post>>(
-          future: postagens,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return PostsList(posts: snapshot.data);
-            }
-            return CircularProgressIndicator();
-          },
-        ),
-      ),
+      body: Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Digite o titulo'),
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Digite um titulo';
+                  }
+                  return null;
+                },
+                onSaved: (t) {
+                  setState(() {
+                    titulo = t;
+                  });
+                },
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Digite o corpo'),
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Digite um corpo';
+                  }
+                  return null;
+                },
+                onSaved: (t) {
+                  setState(() {
+                    titulo = t;
+                  });
+                },
+              ),
+              RaisedButton(
+                child: Text("Enviar"),
+                onPressed: () {
+                  if (_formKey.currentState.validate()) {
+                    _formKey.currentState.save();
+
+                    enviaPost(titulo, corpo);
+                  }
+                },
+              )
+            ],
+          )),
     );
   }
 }
